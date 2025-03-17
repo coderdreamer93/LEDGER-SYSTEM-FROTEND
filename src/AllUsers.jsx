@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./AllUsers.css";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -37,7 +36,7 @@ const AllUsers = () => {
     setNewUser({ ...newUser, [e.target.name]: e.target.value });
   };
 
-  // Handle permission toggle
+  // Handle permission toggle (Removed "can_view" functionality)
   const handlePermissionToggle = async (id, permission) => {
     try {
       const userToUpdate = users.find((user) => user._id === id);
@@ -48,7 +47,6 @@ const AllUsers = () => {
         [permission]: !userToUpdate.permissions[permission],
       };
 
-      // Send updated permissions to the API
       const response = await fetch(
         "https://ledger-system-backend.vercel.app/api/auth/assign-permissions",
         {
@@ -97,6 +95,9 @@ const AllUsers = () => {
       setUsers([...users, responseData]); // Update users list
       setShowModal(false);
       setMessage("User created successfully!");
+      setTimeout(() => {
+        window.location.reload(); // Refresh after success
+      }, 200);
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("Error creating user:", error.message);
@@ -105,100 +106,127 @@ const AllUsers = () => {
   };
 
   return (
-    <div className="all-users-container">
-      <h2 className="title">Admin User Management</h2>
-      {message && <p className="success-message">{message}</p>}
+    <div className="container my-5">
+      <h2 className="text-center mb-4">Admin User Management</h2>
+      {message && <div className="alert alert-success">{message}</div>}
 
       {loading ? (
-        <p className="loading-text">Loading users...</p>
+        <p className="text-center text-secondary">Loading users...</p>
       ) : (
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>User ID</th>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Permissions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user._id}</td>
-                <td>{user.name}</td>
-                <td>{user.role}</td>
-                <td>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={user.permissions?.can_view || false}
-                      onChange={() => handlePermissionToggle(user._id, "can_view")}
-                    />
-                    View
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={user.permissions?.can_edit || false}
-                      onChange={() => handlePermissionToggle(user._id, "can_edit")}
-                    />
-                    Edit
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={user.permissions?.can_delete || false}
-                      onChange={() => handlePermissionToggle(user._id, "can_delete")}
-                    />
-                    Delete
-                  </label>
-                </td>
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover">
+            <thead className="table-dark">
+              <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Permissions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td>{user._id}</td>
+                  <td>{user.name}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <div className="form-check form-check-inline">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={user.permissions?.can_edit || false}
+                        onChange={() =>
+                          handlePermissionToggle(user._id, "can_edit")
+                        }
+                      />
+                      <label className="form-check-label">Edit</label>
+                    </div>
+                    <div className="form-check form-check-inline">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={user.permissions?.can_delete || false}
+                        onChange={() =>
+                          handlePermissionToggle(user._id, "can_delete")
+                        }
+                      />
+                      <label className="form-check-label">Delete</label>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <button className="create-user-button" onClick={() => setShowModal(true)}>
+      <button
+        className="btn btn-success mt-3"
+        onClick={() => setShowModal(true)}
+      >
         Create New User
       </button>
 
       {/* Modal for new user creation */}
       {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Create New User</h3>
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={newUser.name}
-              onChange={handleChange}
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={handleChange}
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={handleChange}
-            />
-            <select name="role" value={newUser.role} onChange={handleChange}>
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-            <button className="submit-button" onClick={handleCreateUser}>
-              Submit
-            </button>
-            <button className="cancel-button" onClick={() => setShowModal(false)}>
-              Cancel
-            </button>
+        <div className="modal fade show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Create New User</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <input
+                  type="text"
+                  name="name"
+                  className="form-control mb-2"
+                  placeholder="Name"
+                  value={newUser.name}
+                  onChange={handleChange}
+                />
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control mb-2"
+                  placeholder="Email"
+                  value={newUser.email}
+                  onChange={handleChange}
+                />
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control mb-2"
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={handleChange}
+                />
+                <select
+                  name="role"
+                  className="form-select mb-2"
+                  value={newUser.role}
+                  onChange={handleChange}
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-primary" onClick={handleCreateUser}>
+                  Submit
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

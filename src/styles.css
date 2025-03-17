@@ -1,0 +1,6 @@
+/* Total quantities cell */
+.low-stock-cell {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-weight: bold;
+}
