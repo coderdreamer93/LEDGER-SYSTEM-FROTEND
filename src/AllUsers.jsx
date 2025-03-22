@@ -44,24 +44,40 @@ const AllUsers = () => {
 
       const updatedPermissions = {
         ...userToUpdate.permissions,
-        [permission]: !userToUpdate.permissions[permission],
+        [permission]: !userToUpdate.permissions?.[permission] || false, // Toggle permission
       };
 
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication token is missing. Please log in again.");
+        return;
+      }
+
       const response = await fetch(
-        "https://ledger-system-backend.vercel.app/api/auth/assign-permissions",
+        "https://ledger-system-backend.vercel.app/api/auth/assign-permission",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: id, permissions: updatedPermissions }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId: id, permission: updatedPermissions }),
         }
       );
+
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to update permissions");
       }
 
-      setUsers(
-        users.map((user) =>
+      // ✅ Real-time update without refresh
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
           user._id === id ? { ...user, permissions: updatedPermissions } : user
         )
       );
@@ -73,6 +89,9 @@ const AllUsers = () => {
       alert("Failed to update permissions");
     }
   };
+
+
+
 
   // Handle new user creation
   const handleCreateUser = async () => {
@@ -134,10 +153,8 @@ const AllUsers = () => {
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        checked={user.permissions?.can_edit || false}
-                        onChange={() =>
-                          handlePermissionToggle(user._id, "can_edit")
-                        }
+                        checked={user.permissions?.can_update || false} // Ensure correct state
+                        onChange={() => handlePermissionToggle(user._id, "can_update")}
                       />
                       <label className="form-check-label">Edit</label>
                     </div>
@@ -145,10 +162,8 @@ const AllUsers = () => {
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        checked={user.permissions?.can_delete || false}
-                        onChange={() =>
-                          handlePermissionToggle(user._id, "can_delete")
-                        }
+                        checked={user.permissions?.can_delete || false} // Ensure correct state
+                        onChange={() => handlePermissionToggle(user._id, "can_delete")}
                       />
                       <label className="form-check-label">Delete</label>
                     </div>

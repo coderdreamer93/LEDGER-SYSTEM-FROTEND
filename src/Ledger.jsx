@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
-const API_URL = "https://ledger-system-backend.vercel.app/api/ledger/ledger";
+const API_URL = "https://ledger-system-backend.vercel.app/api/ledger";
 
 export default function Ledger() {
   const [formData, setFormData] = useState({
@@ -28,11 +28,20 @@ export default function Ledger() {
     }
   }, [navigate]);
 
-  const fetchTransactions = async (token) => {
+  const fetchTransactions = async () => {
     setLoading(true);
     setError(null);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Authentication token not found!");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch("https://ledger-system-backend.vercel.app/api/ledger/all", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -41,8 +50,9 @@ export default function Ledger() {
       });
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
+
       const data = await response.json();
-      setTransactions(data.ledgers || data || []);
+      setTransactions(data.ledgers || data || []); // Store ledger entries
     } catch (err) {
       setError(err.message);
     } finally {
@@ -53,6 +63,53 @@ export default function Ledger() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // ✅ Handle Update Ledger Entry
+  const handleUpdate = async (id) => {
+    const token = localStorage.getItem("token");
+    const updatedData = { ...formData }; // Modify as needed
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) throw new Error("Failed to update ledger entry");
+
+      alert("Entry updated successfully!");
+      fetchTransactions(); // Refresh transactions
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ✅ Handle Delete Ledger Entry
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
+
+    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete ledger entry");
+
+      alert("Entry deleted successfully!");
+      setTransactions((prev) => prev.filter((entry) => entry._id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -74,9 +131,16 @@ export default function Ledger() {
         body: JSON.stringify(formData),
       });
 
+      const responseData = await response.json();
+      console.log("Response Data:", responseData); // Debugging line
+
       if (!response.ok) throw new Error("Failed to save ledger entry");
 
       alert("Entry added successfully!");
+
+      // Update transactions state without refetching
+      setTransactions((prev) => [...prev, responseData]);
+
       setFormData({
         modelName: "",
         quantity: "",
@@ -84,11 +148,12 @@ export default function Ledger() {
         purchase: "",
         paymentType: "cash",
       });
-      fetchTransactions(token);
+
     } catch (err) {
       alert(err.message);
     }
   };
+
 
   return (
     <div className="container mt-4">
@@ -216,6 +281,20 @@ export default function Ledger() {
                         {totalQuantity}
                       </td>
                       <td>{transaction.paymentType}</td>
+                      <td>
+                        <button
+                          className="btn btn-warning btn-sm me-2"
+                          onClick={() => handleUpdate(transaction._id)}
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(transaction._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
