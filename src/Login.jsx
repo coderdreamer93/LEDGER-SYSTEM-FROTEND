@@ -40,6 +40,7 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("userId", data.user._id); // Store the userId
 
         if (data.user.role === "admin") {
           navigate("/all-users");

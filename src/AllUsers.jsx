@@ -92,7 +92,6 @@ const AllUsers = () => {
 
 
 
-
   // Handle new user creation
   const handleCreateUser = async () => {
     try {
@@ -138,6 +137,8 @@ const AllUsers = () => {
               <tr>
                 <th>User ID</th>
                 <th>Name</th>
+                <th>Email</th>
+                <th>Password</th>
                 <th>Role</th>
                 <th>Permissions</th>
               </tr>
@@ -147,6 +148,8 @@ const AllUsers = () => {
                 <tr key={user._id}>
                   <td>{user._id}</td>
                   <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.password}</td>
                   <td>{user.role}</td>
                   <td>
                     <div className="form-check form-check-inline">

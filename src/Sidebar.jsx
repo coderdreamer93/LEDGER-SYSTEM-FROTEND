@@ -22,15 +22,15 @@ const Sidebar = () => {
     <>
       {/* Sidebar Toggle Button */}
       <button
-  className="btn btn-white btn-sm position-fixed m-2 d-flex align-items-center justify-content-center"
-  style={{ width: "35px", height: "35px", padding: "0" }}
-  type="button"
-  data-bs-toggle="offcanvas"
-  data-bs-target="#sidebarMenu"
-  aria-controls="sidebarMenu"
->
-  <FaBars />
-</button>
+        className="btn btn-white btn-sm position-fixed m-2 d-flex align-items-center justify-content-center"
+        style={{ width: "35px", height: "35px", padding: "0" }}
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#sidebarMenu"
+        aria-controls="sidebarMenu"
+      >
+        <FaBars />
+      </button>
 
       {/* Bootstrap Offcanvas Sidebar */}
       <div
@@ -60,6 +60,16 @@ const Sidebar = () => {
             <li className="nav-item">
               <Link className="nav-link text-white" to="/all-users">
                 All Users
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link text-white" to="/stock-report">
+                Stock Report
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link text-white" to="/ledger-history">
+                Total Ledger History
               </Link>
             </li>
           </ul>
